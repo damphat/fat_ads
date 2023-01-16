@@ -148,8 +148,7 @@ class FatOpenAd with ChangeNotifier {
   }
 
   void showMenu() {
-    if (openAd != null) {
-      MobileAds.instance.openDebugMenu(adUnitId);
-    }
+    // TODO: exception if not initalized
+    MobileAds.instance.openDebugMenu(adUnitId);
   }
 }
