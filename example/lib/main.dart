@@ -5,7 +5,7 @@ void main() {
   runApp(
     FatOpenAdProvider(
       fatOpenAd: FatOpenAd(
-        timeout: const Duration(minutes: 2),
+        timeout: const Duration(seconds: 10),
       ),
       child: const MyApp(),
     ),
@@ -18,14 +18,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Material App',
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Material App Bar'),
+          title: const Text('Fat Ads'),
         ),
         body: const FatOpenAdDebugger(
           child: Center(
-            child: Text('Hello World'),
+            child: Text('Did you see the App Open Ad popup?'),
           ),
         ),
       ),
