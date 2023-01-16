@@ -1,7 +1,5 @@
 library fat_ads;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'src/fat_open_ad.dart';
+export 'src/fat_open_ad_provider.dart';
+export 'src/fat_open_ad_debugger.dart';
