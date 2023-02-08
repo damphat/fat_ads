@@ -1,16 +1,19 @@
+// ignore_for_file: public_member_api_docs
+
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'fat_open_ad.dart';
-import 'package:flutter/material.dart';
 
 class FatOpenAdProvider extends StatefulWidget {
-  final Widget child;
-  final FatOpenAd fatOpenAd;
   FatOpenAdProvider({
     super.key,
     required this.child,
     FatOpenAd? fatOpenAd,
   }) : fatOpenAd = fatOpenAd ?? FatOpenAd();
+
+  final Widget child;
+  final FatOpenAd fatOpenAd;
 
   @override
   State<FatOpenAdProvider> createState() => _FatOpenAdProviderState();
@@ -25,7 +28,7 @@ class _FatOpenAdProviderState extends State<FatOpenAdProvider> {
     init();
   }
 
-  void init() async {
+  Future<void> init() async {
     await ad.initialize();
     await ad.loadAd();
     await ad.showAd();
@@ -37,10 +40,8 @@ class _FatOpenAdProviderState extends State<FatOpenAdProvider> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: widget.fatOpenAd,
-      child: widget.child,
-    );
-  }
+  Widget build(BuildContext context) => ChangeNotifierProvider.value(
+        value: widget.fatOpenAd,
+        child: widget.child,
+      );
 }

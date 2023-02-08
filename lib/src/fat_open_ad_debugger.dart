@@ -1,14 +1,17 @@
-import 'package:fat_ads/fat_ads.dart';
+// ignore_for_file: public_member_api_docs
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../fat_ads.dart';
+
 class FatOpenAdDebugger extends StatefulWidget {
-  final Widget child;
   const FatOpenAdDebugger({
     super.key,
     required this.child,
   });
+  final Widget child;
 
   @override
   State<FatOpenAdDebugger> createState() => _FatOpenAdDebuggerState();
@@ -22,9 +25,9 @@ class _FatOpenAdDebuggerState extends State<FatOpenAdDebugger> {
     if (kReleaseMode) {
       return widget.child;
     }
-    var ad = context.watch<FatOpenAd>();
-    var log = ad.logs.map((e) => Text(e));
-    var debug = !_showDebug
+    final ad = context.watch<FatOpenAd>();
+    final log = ad.logs.map(Text.new);
+    final debug = !_showDebug
         ? InkWell(
             onTap: () => setState(() => _showDebug = !_showDebug),
             child: const Icon(

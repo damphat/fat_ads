@@ -1,13 +1,22 @@
+// ignore_for_file: public_member_api_docs
+
 import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:json5/json5.dart';
 import 'package:intl/intl.dart';
+import 'package:json5/json5.dart';
 
 class FatOpenAd with ChangeNotifier {
+  FatOpenAd({
+    this.iosUnitId = testIosUnitId,
+    this.androidUnitId = testAndroidUnitId,
+    this.immersiveModeEnabled,
+    this.timeout = const Duration(seconds: 5),
+  });
+
   static const testAndroidUnitId = 'ca-app-pub-3940256099942544/3419835294';
   static const testIosUnitId = 'ca-app-pub-3940256099942544/5662855259';
   static const testAppId = 'ca-app-pub-3940256099942544~3347511713';
@@ -16,7 +25,7 @@ class FatOpenAd with ChangeNotifier {
   final String androidUnitId;
   final bool? immersiveModeEnabled;
   final Duration timeout;
-  String _state = "none";
+  String _state = 'none';
   String get state => _state;
   List<String> _logs = <String>[];
   List<String> get logs => _logs;
@@ -28,7 +37,7 @@ class FatOpenAd with ChangeNotifier {
 
   void log(String msg) {
     var time = DateFormat.Hms().format(DateTime.now());
-    msg = "$time | $msg";
+    msg = '$time | $msg';
     _logs = [..._logs, msg];
     notifyListeners();
   }
@@ -46,16 +55,9 @@ class FatOpenAd with ChangeNotifier {
     }
   }
 
-  FatOpenAd({
-    this.iosUnitId = testIosUnitId,
-    this.androidUnitId = testAndroidUnitId,
-    this.immersiveModeEnabled,
-    this.timeout = const Duration(seconds: 5),
-  });
-
   @override
   String toString() {
-    var o = {
+    final o = {
       'adUnitId': adUnitId,
     };
     return JSON5.stringify(o, space: 5);
@@ -69,7 +71,7 @@ class FatOpenAd with ChangeNotifier {
     return ret;
   }
 
-  AppOpenAd? openAd;
+  AppOpenAd? openAd; // TODO: _openAd
   Future<void> loadAd() async {
     log('loadAd()');
     if (openAd != null) {
@@ -77,16 +79,16 @@ class FatOpenAd with ChangeNotifier {
       return;
     }
 
-    var loadCompleter = Completer();
+    final loadCompleter = Completer();
 
-    var timer = Timer(timeout, () {
+    final timer = Timer(timeout, () {
       log('loadAd() error, timeout');
       loadCompleter.complete();
     });
 
     AppOpenAd.load(
       adUnitId: adUnitId,
-      orientation: AppOpenAd.orientationPortrait,
+      orientation: AppOpenAd.orientationPortrait, // TODO
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
