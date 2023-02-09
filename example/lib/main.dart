@@ -5,7 +5,14 @@ void main() {
   runApp(
     FatOpenAdProvider(
       fatOpenAd: FatOpenAd(
-        timeout: const Duration(seconds: 10),
+        timeout: const Duration(seconds: 5),
+        loadingPage: (context, percent) {
+          return Scaffold(
+            body: Center(
+              child: Text("Loading $percent %!"),
+            ),
+          );
+        },
       ),
       child: const MyApp(),
     ),
