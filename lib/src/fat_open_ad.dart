@@ -5,26 +5,39 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 import 'package:json5/json5.dart';
 
 class FatOpenAd with ChangeNotifier {
   FatOpenAd({
+    this.hideApplication = false,
     this.iosUnitId = testIosUnitId,
     this.androidUnitId = testAndroidUnitId,
     this.immersiveModeEnabled,
     this.timeout = const Duration(seconds: 5),
+    this.loadingPage,
   });
 
   static const testAndroidUnitId = 'ca-app-pub-3940256099942544/3419835294';
   static const testIosUnitId = 'ca-app-pub-3940256099942544/5662855259';
   static const testAppId = 'ca-app-pub-3940256099942544~3347511713';
 
+  final bool hideApplication;
   final String iosUnitId;
   final String androidUnitId;
   final bool? immersiveModeEnabled;
   final Duration timeout;
+  final Widget Function(BuildContext context, int percent)? loadingPage;
+
+  int? _percent = 0;
+  int? get percent => _percent;
+  void _setPercent(int? percent) {
+    _percent = percent;
+    notifyListeners();
+  }
+
   String _state = 'none';
   String get state => _state;
   List<String> _logs = <String>[];
@@ -65,14 +78,20 @@ class FatOpenAd with ChangeNotifier {
 
   Future<InitializationStatus> initialize() async {
     log('initializing');
-    WidgetsFlutterBinding.ensureInitialized();
-    var ret = await MobileAds.instance.initialize();
+    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    if (hideApplication) {
+      log("preserve native spash");
+      FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+    }
+    final ret = await MobileAds.instance.initialize();
     log('initialized $ret');
     return ret;
   }
 
   AppOpenAd? openAd; // TODO: _openAd
   Future<void> loadAd() async {
+    _setPercent(0);
+
     log('loadAd()');
     if (openAd != null) {
       log('loadAd() error, already loaded');
@@ -81,9 +100,19 @@ class FatOpenAd with ChangeNotifier {
 
     final loadCompleter = Completer();
 
-    final timer = Timer(timeout, () {
-      log('loadAd() error, timeout');
-      loadCompleter.complete();
+    var count = timeout;
+    const step = Duration(milliseconds: 200);
+    final timer = Timer.periodic(step, (final timer) {
+      if (timeout != Duration.zero) {
+        _setPercent(
+            100 - (count.inMilliseconds * 100 ~/ timeout.inMilliseconds));
+      }
+      count = count - step;
+      if (count <= Duration.zero) {
+        log('loadAd() error, timeout');
+        timer.cancel();
+        loadCompleter.complete();
+      }
     });
 
     AppOpenAd.load(
@@ -110,8 +139,16 @@ class FatOpenAd with ChangeNotifier {
     return loadCompleter.future;
   }
 
-  // request | show | hide
   Future<void> showAd() async {
+    await _showAd();
+    if (hideApplication) {
+      log("remove native spash");
+      FlutterNativeSplash.remove();
+    }
+  }
+
+  // request | show | hide
+  Future<void> _showAd() async {
     log('showAd()');
     if (openAd == null) {
       if (openAd == null) {
@@ -147,6 +184,7 @@ class FatOpenAd with ChangeNotifier {
         showCompleter.complete();
       },
     );
+    return showCompleter.future;
   }
 
   void showMenu() {

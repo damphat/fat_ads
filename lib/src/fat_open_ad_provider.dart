@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs
+// ignore_for_file: public_member_api_docs, prefer_final_parameters, prefer_expression_function_bodies
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +21,7 @@ class FatOpenAdProvider extends StatefulWidget {
 
 class _FatOpenAdProviderState extends State<FatOpenAdProvider> {
   late FatOpenAd ad;
+  var loading = true;
   @override
   void initState() {
     super.initState();
@@ -31,6 +32,10 @@ class _FatOpenAdProviderState extends State<FatOpenAdProvider> {
   Future<void> init() async {
     await ad.initialize();
     await ad.loadAd();
+
+    setState(() {
+      loading = false;
+    });
     await ad.showAd();
   }
 
@@ -39,9 +44,28 @@ class _FatOpenAdProviderState extends State<FatOpenAdProvider> {
     super.dispose();
   }
 
+  Widget buildLoading(BuildContext context, int percent) {
+    return MaterialApp(
+      home: ad.loadingPage!(context, percent),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) => ChangeNotifierProvider.value(
-        value: widget.fatOpenAd,
-        child: widget.child,
-      );
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider.value(
+      value: widget.fatOpenAd,
+      child: Builder(
+        builder: (context) {
+          final percent =
+              context.select<FatOpenAd, int?>((value) => value.percent);
+          final ad = context.read<FatOpenAd>();
+          if (!loading || ad.loadingPage == null) {
+            return widget.child;
+          }
+
+          return buildLoading(context, percent ?? 0);
+        },
+      ),
+    );
+  }
 }
