@@ -5,7 +5,6 @@ void main() {
   runApp(
     FatAds(
       openApp: FatOpenApp(
-        loadingTimeout: const Duration(seconds: 5),
         loadingPage: (context, percent) {
           return Scaffold(
             body: Center(
@@ -30,9 +29,7 @@ class MyApp extends StatelessWidget {
           title: const Text('Fat Ads'),
         ),
         body: const FatDebug(
-          child: Center(
-            child: Text('Did you see the App Open Ad popup?'),
-          ),
+          child: Center(child: Text('Did you see the App Open Ad popup?')),
         ),
       ),
     );
