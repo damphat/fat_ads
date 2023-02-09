@@ -8,33 +8,37 @@ class FatAds extends StatefulWidget {
     super.key,
     required this.child,
     FatOpenApp? openApp,
-  }) : fatOpenAd = openApp ?? FatOpenApp();
+  }) : openApp = openApp ?? FatOpenApp();
 
   final Widget child;
-  final FatOpenApp fatOpenAd;
+  final FatOpenApp openApp;
 
   @override
   State<FatAds> createState() => _FatAdsState();
 }
 
 class _FatAdsState extends State<FatAds> {
-  late FatOpenApp ad;
+  late FatOpenApp openApp;
   var loading = true;
   @override
   void initState() {
     super.initState();
-    ad = widget.fatOpenAd;
+    openApp = widget.openApp;
     init();
   }
 
   Future<void> init() async {
-    await ad.initialize();
-    await ad.loadAd();
+    setState(() {
+      loading = true;
+    });
+    await openApp.initialize();
+    await openApp.loadAd();
+
+    await openApp.showAd();
 
     setState(() {
       loading = false;
     });
-    await ad.showAd();
   }
 
   @override
@@ -44,14 +48,14 @@ class _FatAdsState extends State<FatAds> {
 
   Widget buildLoading(BuildContext context, int percent) {
     return MaterialApp(
-      home: ad.loadingPage!(context, percent),
+      home: openApp.loadingPage!(context, percent),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: widget.fatOpenAd,
+      value: widget.openApp,
       child: Builder(
         builder: (context) {
           final percent =
