@@ -97,8 +97,8 @@ class _FatDebugState extends State<FatDebug> {
           );
     return Stack(
       children: [
-        debug,
         widget.child,
+        debug,
       ],
     );
   }
