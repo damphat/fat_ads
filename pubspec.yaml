@@ -1,5 +1,5 @@
 name: fat_ads
-description: Add ads to your app in 1 minute.
+description: A simple and easy-to-use Flutter package to integrate Ads into your app.
 version: 0.0.1
 
 environment:
