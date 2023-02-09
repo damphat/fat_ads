@@ -1,26 +1,24 @@
-// ignore_for_file: public_member_api_docs, prefer_final_parameters, prefer_expression_function_bodies
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'fat_open_ad.dart';
+import 'fat_open_app.dart';
 
-class FatOpenAdProvider extends StatefulWidget {
-  FatOpenAdProvider({
+class FatAds extends StatefulWidget {
+  FatAds({
     super.key,
     required this.child,
-    FatOpenAd? fatOpenAd,
-  }) : fatOpenAd = fatOpenAd ?? FatOpenAd();
+    FatOpenApp? openApp,
+  }) : fatOpenAd = openApp ?? FatOpenApp();
 
   final Widget child;
-  final FatOpenAd fatOpenAd;
+  final FatOpenApp fatOpenAd;
 
   @override
-  State<FatOpenAdProvider> createState() => _FatOpenAdProviderState();
+  State<FatAds> createState() => _FatAdsState();
 }
 
-class _FatOpenAdProviderState extends State<FatOpenAdProvider> {
-  late FatOpenAd ad;
+class _FatAdsState extends State<FatAds> {
+  late FatOpenApp ad;
   var loading = true;
   @override
   void initState() {
@@ -57,8 +55,8 @@ class _FatOpenAdProviderState extends State<FatOpenAdProvider> {
       child: Builder(
         builder: (context) {
           final percent =
-              context.select<FatOpenAd, int?>((value) => value.percent);
-          final ad = context.read<FatOpenAd>();
+              context.select<FatOpenApp, int?>((value) => value.percent);
+          final ad = context.read<FatOpenApp>();
           if (!loading || ad.loadingPage == null) {
             return widget.child;
           }

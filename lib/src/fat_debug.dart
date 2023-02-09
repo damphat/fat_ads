@@ -1,23 +1,21 @@
-// ignore_for_file: public_member_api_docs
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../fat_ads.dart';
 
-class FatOpenAdDebugger extends StatefulWidget {
-  const FatOpenAdDebugger({
+class FatDebug extends StatefulWidget {
+  const FatDebug({
     super.key,
     required this.child,
   });
   final Widget child;
 
   @override
-  State<FatOpenAdDebugger> createState() => _FatOpenAdDebuggerState();
+  State<FatDebug> createState() => _FatDebugState();
 }
 
-class _FatOpenAdDebuggerState extends State<FatOpenAdDebugger> {
+class _FatDebugState extends State<FatDebug> {
   bool _showDebug = false;
 
   @override
@@ -25,7 +23,7 @@ class _FatOpenAdDebuggerState extends State<FatOpenAdDebugger> {
     if (kReleaseMode) {
       return widget.child;
     }
-    final ad = context.watch<FatOpenAd>();
+    final ad = context.watch<FatOpenApp>();
     final log = ad.logs.map(Text.new);
     final debug = !_showDebug
         ? InkWell(
@@ -71,19 +69,19 @@ class _FatOpenAdDebuggerState extends State<FatOpenAdDebugger> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () => context.read<FatOpenAd>().loadAd(),
+                      onPressed: () => context.read<FatOpenApp>().loadAd(),
                       child: const Text('load'),
                     ),
                     TextButton(
-                      onPressed: () => context.read<FatOpenAd>().showAd(),
+                      onPressed: () => context.read<FatOpenApp>().showAd(),
                       child: const Text('show'),
                     ),
                     TextButton(
-                      onPressed: () => context.read<FatOpenAd>().clearLogs(),
+                      onPressed: () => context.read<FatOpenApp>().clearLogs(),
                       child: const Text('clear'),
                     ),
                     TextButton(
-                      onPressed: () => context.read<FatOpenAd>().showMenu(),
+                      onPressed: () => context.read<FatOpenApp>().showMenu(),
                       child: const Icon(Icons.menu),
                     ),
                   ],

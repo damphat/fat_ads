@@ -1,5 +1,3 @@
-// ignore_for_file: public_member_api_docs
-
 import 'dart:async';
 import 'dart:io';
 
@@ -10,13 +8,13 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 import 'package:json5/json5.dart';
 
-class FatOpenAd with ChangeNotifier {
-  FatOpenAd({
+class FatOpenApp with ChangeNotifier {
+  FatOpenApp({
     this.hideApplication = false,
     this.iosUnitId = testIosUnitId,
     this.androidUnitId = testAndroidUnitId,
     this.immersiveModeEnabled,
-    this.timeout = const Duration(seconds: 5),
+    this.loadingTimeout = const Duration(seconds: 5),
     this.loadingPage,
   });
 
@@ -28,7 +26,7 @@ class FatOpenAd with ChangeNotifier {
   final String iosUnitId;
   final String androidUnitId;
   final bool? immersiveModeEnabled;
-  final Duration timeout;
+  final Duration loadingTimeout;
   final Widget Function(BuildContext context, int percent)? loadingPage;
 
   int? _percent = 0;
@@ -100,12 +98,12 @@ class FatOpenAd with ChangeNotifier {
 
     final loadCompleter = Completer();
 
-    var count = timeout;
+    var count = loadingTimeout;
     const step = Duration(milliseconds: 200);
     final timer = Timer.periodic(step, (final timer) {
-      if (timeout != Duration.zero) {
-        _setPercent(
-            100 - (count.inMilliseconds * 100 ~/ timeout.inMilliseconds));
+      if (loadingTimeout != Duration.zero) {
+        _setPercent(100 -
+            (count.inMilliseconds * 100 ~/ loadingTimeout.inMilliseconds));
       }
       count = count - step;
       if (count <= Duration.zero) {

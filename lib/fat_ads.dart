@@ -1,5 +1,5 @@
 library fat_ads;
 
-export 'src/fat_open_ad.dart';
-export 'src/fat_open_ad_provider.dart';
-export 'src/fat_open_ad_debugger.dart';
+export 'src/fat_open_app.dart';
+export 'src/fat_ads.dart';
+export 'src/fat_debug.dart';

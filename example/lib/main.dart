@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 void main() {
   runApp(
-    FatOpenAdProvider(
-      fatOpenAd: FatOpenAd(
-        timeout: const Duration(seconds: 5),
+    FatAds(
+      openApp: FatOpenApp(
+        loadingTimeout: const Duration(seconds: 5),
         loadingPage: (context, percent) {
           return Scaffold(
             body: Center(
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Fat Ads'),
         ),
-        body: const FatOpenAdDebugger(
+        body: const FatDebug(
           child: Center(
             child: Text('Did you see the App Open Ad popup?'),
           ),
