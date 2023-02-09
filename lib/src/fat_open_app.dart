@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:intl/intl.dart';
 import 'package:json5/json5.dart';
 
 class FatOpenApp with ChangeNotifier {
@@ -47,8 +46,8 @@ class FatOpenApp with ChangeNotifier {
   }
 
   void log(String msg) {
-    var time = DateFormat.Hms().format(DateTime.now());
-    msg = '$time | $msg';
+    var time = DateTime.now();
+    msg = '${time.second}${time.millisecond.toString().padLeft(3, '-')} | $msg';
     _logs = [..._logs, msg];
     notifyListeners();
   }
