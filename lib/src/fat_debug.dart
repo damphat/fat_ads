@@ -23,7 +23,7 @@ class _FatDebugState extends State<FatDebug> {
     if (kReleaseMode) {
       return widget.child;
     }
-    final ad = context.watch<FatOpenApp>();
+    final ad = context.watch<FatOpen>();
     final log = ad.logs.map(Text.new);
     final debug = !_showDebug
         ? InkWell(
@@ -69,19 +69,19 @@ class _FatDebugState extends State<FatDebug> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () => context.read<FatOpenApp>().loadAd(),
+                      onPressed: () => context.read<FatOpen>().loadAd(),
                       child: const Text('load'),
                     ),
                     TextButton(
-                      onPressed: () => context.read<FatOpenApp>().showAd(),
+                      onPressed: () => context.read<FatOpen>().showAd(),
                       child: const Text('show'),
                     ),
                     TextButton(
-                      onPressed: () => context.read<FatOpenApp>().clearLogs(),
+                      onPressed: () => context.read<FatOpen>().clearLogs(),
                       child: const Text('clear'),
                     ),
                     TextButton(
-                      onPressed: () => context.read<FatOpenApp>().showMenu(),
+                      onPressed: () => context.read<FatOpen>().showMenu(),
                       child: const Icon(Icons.menu),
                     ),
                   ],

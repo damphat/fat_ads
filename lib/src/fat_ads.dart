@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'fat_open_app.dart';
+import 'fat_open.dart';
 
 class FatAds extends StatefulWidget {
   FatAds({
     super.key,
     required this.child,
-    FatOpenApp? openApp,
-  }) : openApp = openApp ?? FatOpenApp();
+    FatOpen? open,
+  }) : open = open ?? FatOpen();
 
   final Widget child;
-  final FatOpenApp openApp;
+  final FatOpen open;
 
   @override
   State<FatAds> createState() => _FatAdsState();
 }
 
 class _FatAdsState extends State<FatAds> {
-  late FatOpenApp openApp;
+  late FatOpen openApp;
   var loading = true;
   @override
   void initState() {
     super.initState();
-    openApp = widget.openApp;
+    openApp = widget.open;
     init();
   }
 
@@ -48,20 +48,20 @@ class _FatAdsState extends State<FatAds> {
 
   Widget buildLoading(BuildContext context, int percent) {
     return MaterialApp(
-      home: openApp.loadingPage!(context, percent),
+      home: openApp.loadingBuilder!(context, percent),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: widget.openApp,
+      value: widget.open,
       child: Builder(
         builder: (context) {
           final percent =
-              context.select<FatOpenApp, int?>((value) => value.percent);
-          final ad = context.read<FatOpenApp>();
-          if (!loading || ad.loadingPage == null) {
+              context.select<FatOpen, int?>((value) => value.percent);
+          final ad = context.read<FatOpen>();
+          if (!loading || ad.loadingBuilder == null) {
             return widget.child;
           }
 

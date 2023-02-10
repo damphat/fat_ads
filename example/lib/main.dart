@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 void main() {
   runApp(
     FatAds(
-      openApp: FatOpenApp(
-        loadingPage: (context, percent) {
+      open: FatOpen(
+        loadingBuilder: (context, percent) {
           return Scaffold(
             body: Center(
               child: Text("Loading $percent %!"),

@@ -7,14 +7,14 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:json5/json5.dart';
 
-class FatOpenApp with ChangeNotifier {
-  FatOpenApp({
+class FatOpen with ChangeNotifier {
+  FatOpen({
     this.hideApplication = false,
     this.iosUnitId = testIosUnitId,
     this.androidUnitId = testAndroidUnitId,
     this.immersiveModeEnabled,
     this.loadingTimeout = const Duration(seconds: 5),
-    this.loadingPage,
+    this.loadingBuilder,
   });
 
   static const testAndroidUnitId = 'ca-app-pub-3940256099942544/3419835294';
@@ -26,7 +26,7 @@ class FatOpenApp with ChangeNotifier {
   final String androidUnitId;
   final bool? immersiveModeEnabled;
   final Duration loadingTimeout;
-  final Widget Function(BuildContext context, int percent)? loadingPage;
+  final Widget Function(BuildContext context, int percent)? loadingBuilder;
 
   int? _percent = 0;
   int? get percent => _percent;
