@@ -1,12 +1,15 @@
 import 'package:fat_ads/fat_ads.dart';
 import 'package:flutter/material.dart';
 
+// Note: app will crash if you forgot to add AdMob App ID to AndroidManifest.xml | Info.plist
+
 void main() async {
   appOpenAds(
-    loadingTimeout: Duration(seconds: 5),
+    // androidUnitId: "ca-app-pub-3940256099942544/3419835294",
+    loadingTimeout: const Duration(seconds: 5),
   );
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -71,8 +71,7 @@ class FatOpen with ChangeNotifier {
     }
 
     _timer = Timer(loadingTimeout, () {
-      log(" endWait because timeout $loadingTimeout");
-      _endLoading();
+      _endLoading("timeout $loadingTimeout");
     });
 
     AppStateEventNotifier.startListening();
@@ -99,21 +98,20 @@ class FatOpen with ChangeNotifier {
           _appOpenLoadTime = DateTime.now();
           _appOpenAd = ad;
           _loadAd = false;
-          log(" endWait because ad is loaded");
-          _endLoading();
+          _endLoading("onAdLoaded");
         },
         onAdFailedToLoad: (error) {
           log('event load: onAdFailedToLoad $error');
           _loadAd = false;
-          log(" endWait because ad is failed to load");
-          _endLoading();
+          _endLoading("onAdFailedToLoad");
         },
       ),
     );
   }
 
-  void _endLoading() {
+  void _endLoading(String reason) {
     if (!_completer.isCompleted) {
+      log(" endWait because $reason");
       _completer.complete();
 
       if (_timer != null) {
@@ -176,6 +174,11 @@ class FatOpen with ChangeNotifier {
     return true;
   }
 }
+
+// This is an async function that returns when an Ads either is loaded or is
+// unable to load within the specified timeout.
+// To prevent Ads from suddenly appearing on your UI, make sure to call this
+// function before `runApp()` and don't forget to use the `await` keyword.
 
 Future<void> appOpenAds({
   String appId = FatOpen.testAppId,

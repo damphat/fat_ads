@@ -1,13 +1,38 @@
-# TODO
+# FatAds
 
-- [x] Avoid making users wait for ads when launching the app. To ensure a seamless experience, preload the ads while the user is actively using the app. Then, upon launching the app, simply check if the ads have already been loaded and display them immediately.
-- [ ] On unsupported ads platforms, FatAds remains silent without displaying any error messages
-- [ ] rename to OpenAppAds
+FatAds is a Flutter package designed to make integrating Ads into your app easier.
+Currently, the package supports only AppOpen Ads.
 
-# QUESTION
+## Key features
 
-- [ ] Display app open ads while users are using the app?
+- Include a command line tool that allows you to update `AndroidManifest.xml` and `Info.plist` files.
+- For safety, it always uses the testing unit IDs in debug mode.
+- For easy cross-platform, we use silent failure instead of throwing exceptions on unsupported platforms.
+- For better readability, all parameters have default values.
+- Support Android/iOS
 
-# ISSUES
+## Usage
 
-- [ ] StateError (Bad state: Future already completed)
+To add or update your `AdMob App ID` into `AndroidManifest.xml` and `Info.plist` files. Run the following command:
+
+```bash
+flutter pub run fat_ads
+```
+
+### To display AppOpen Ads
+
+```dart
+void main() async {
+    // This is an async function that returns when an Ads either is loaded or is
+    // unable to load within the specified timeout.
+    // To prevent Ads from suddenly appearing on your UI, make sure to call this
+    // function before `runApp()` and don't forget to use the `await` keyword.
+    await appOpenAds(
+        // iosUnitId: "<ios ad unit id>",
+        // androidUnitId: "<android ad unit id>",
+        // loadingTimeout: Duration(seconds: 3),
+    );
+
+    runApp(...)
+}
+```
