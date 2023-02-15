@@ -5,49 +5,41 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:json5/json5.dart';
 
 class FatOpen with ChangeNotifier {
   FatOpen({
-    this.hideApplication = false,
+    this.keepSplash = false,
+    this.appId = testAppId,
     this.iosUnitId = testIosUnitId,
     this.androidUnitId = testAndroidUnitId,
-    this.immersiveModeEnabled,
-    this.loadingTimeout = const Duration(seconds: 5),
-    this.loadingBuilder,
+    this.loadingTimeout = const Duration(seconds: 3),
   });
 
   static const testAndroidUnitId = 'ca-app-pub-3940256099942544/3419835294';
   static const testIosUnitId = 'ca-app-pub-3940256099942544/5662855259';
   static const testAppId = 'ca-app-pub-3940256099942544~3347511713';
+  static const Duration maxCacheDuration = Duration(hours: 4);
 
-  final bool hideApplication;
+  final bool keepSplash;
+  final String appId;
   final String iosUnitId;
   final String androidUnitId;
-  final bool? immersiveModeEnabled;
   final Duration loadingTimeout;
-  final Widget Function(BuildContext context, int percent)? loadingBuilder;
 
-  int? _percent = 0;
-  int? get percent => _percent;
-  void _setPercent(int? percent) {
-    _percent = percent;
-    notifyListeners();
-  }
-
-  String _state = 'none';
-  String get state => _state;
   List<String> _logs = <String>[];
   List<String> get logs => _logs;
 
-  void setState(String state) {
-    _state = state;
-    notifyListeners();
-  }
+  AppOpenAd? _appOpenAd;
+  bool _showing = false;
+  DateTime? _appOpenLoadTime;
+  final Completer _completer = Completer();
+  Timer? _timer;
+  Future<void> get loading => _completer.future;
 
   void log(String msg) {
     var time = DateTime.now();
     msg = '${time.second}${time.millisecond.toString().padLeft(3, '-')} | $msg';
+    debugPrint('LOG: $msg');
     _logs = [..._logs, msg];
     notifyListeners();
   }
@@ -65,127 +57,144 @@ class FatOpen with ChangeNotifier {
     }
   }
 
-  @override
-  String toString() {
-    final o = {
-      'adUnitId': adUnitId,
-    };
-    return JSON5.stringify(o, space: 5);
-  }
-
-  Future<InitializationStatus> initialize() async {
-    log('initializing');
+  bool _initialized = false;
+  void initialize() {
+    if (_initialized) return;
+    _initialized = true;
+    log('initialize');
     final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-    if (hideApplication) {
+    MobileAds.instance.initialize();
+
+    if (keepSplash) {
       log("preserve native spash");
       FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     }
-    final ret = await MobileAds.instance.initialize();
-    log('initialized $ret');
-    return ret;
-  }
 
-  AppOpenAd? openAd; // TODO: _openAd
-  Future<void> loadAd() async {
-    _setPercent(0);
-
-    log('loadAd()');
-    if (openAd != null) {
-      log('loadAd() error, already loaded');
-      return;
-    }
-
-    final loadCompleter = Completer();
-
-    var count = loadingTimeout;
-    const step = Duration(milliseconds: 200);
-    final timer = Timer.periodic(step, (final timer) {
-      if (loadingTimeout != Duration.zero) {
-        _setPercent(100 -
-            (count.inMilliseconds * 100 ~/ loadingTimeout.inMilliseconds));
-      }
-      count = count - step;
-      if (count <= Duration.zero) {
-        log('loadAd() error, timeout');
-        timer.cancel();
-        loadCompleter.complete();
-      }
+    _timer = Timer(loadingTimeout, () {
+      log(" endWait because timeout $loadingTimeout");
+      _endLoading();
     });
 
+    AppStateEventNotifier.startListening();
+    AppStateEventNotifier.appStateStream.forEach((state) {
+      if (state == AppState.foreground) {
+        log('foreground');
+        showAdIfAvailable();
+      }
+    });
+  }
+
+  var _loadAd = false;
+  void loadAd() {
+    if (_loadAd || _appOpenAd != null) return;
+    _loadAd = true;
+    log('AppOpenAd.load()');
     AppOpenAd.load(
       adUnitId: adUnitId,
-      orientation: AppOpenAd.orientationPortrait, // TODO
+      orientation: AppOpenAd.orientationPortrait,
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
-          log('loadAd() success');
-          timer.cancel();
-          openAd = ad;
-          // complete twice
-          loadCompleter.complete();
+          log('event load: onAdLoaded: $ad');
+          _appOpenLoadTime = DateTime.now();
+          _appOpenAd = ad;
+          _loadAd = false;
+          log(" endWait because ad is loaded");
+          _endLoading();
         },
         onAdFailedToLoad: (error) {
-          log('loadAd() error, $error');
-          timer.cancel();
-          // complete twice
-          // should not send the error
-          loadCompleter.complete();
+          log('event load: onAdFailedToLoad $error');
+          _loadAd = false;
+          log(" endWait because ad is failed to load");
+          _endLoading();
         },
       ),
     );
-    return loadCompleter.future;
   }
 
-  Future<void> showAd() async {
-    await _showAd();
-    if (hideApplication) {
-      log("remove native spash");
-      FlutterNativeSplash.remove();
-    }
-  }
+  void _endLoading() {
+    if (!_completer.isCompleted) {
+      _completer.complete();
 
-  // request | show | hide
-  Future<void> _showAd() async {
-    log('showAd()');
-    if (openAd == null) {
-      if (openAd == null) {
-        log('showAd() error, no ad loaded');
-        return;
+      if (_timer != null) {
+        _timer!.cancel();
+        _timer = null;
+      }
+      if (keepSplash) {
+        FlutterNativeSplash.remove();
       }
     }
-
-    Completer showCompleter = Completer();
-    log('showAd() request to show()');
-
-    if (immersiveModeEnabled != null) {
-      openAd!.setImmersiveMode(immersiveModeEnabled!);
-    }
-
-    openAd!.show();
-
-    openAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (ad) {
-        log('showAd() showing');
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        log('showAd() can not show $error');
-        ad.dispose();
-        openAd = null;
-        showCompleter.complete();
-      },
-      onAdDismissedFullScreenContent: (ad) {
-        log('showAd() dismissed');
-        ad.dispose();
-        openAd = null;
-        loadAd();
-        showCompleter.complete();
-      },
-    );
-    return showCompleter.future;
   }
 
-  void showMenu() {
-    // TODO: exception if not initalized
-    MobileAds.instance.openDebugMenu(adUnitId);
+  bool get isAdAvailable {
+    return _appOpenAd != null;
+  }
+
+  bool showAdIfAvailable() {
+    log('showAdIfAvailable()');
+    if (!isAdAvailable) {
+      log('  no ad available => loadAd()');
+      loadAd();
+      return false;
+    }
+
+    if (_showing) {
+      log('  ad is showing => not show again');
+      return false;
+    }
+
+    if (DateTime.now().subtract(maxCacheDuration).isAfter(_appOpenLoadTime!)) {
+      log('  ad expired => dispose and load new ad');
+      _appOpenAd!.dispose();
+      _appOpenAd = null;
+      loadAd();
+      return false;
+    }
+
+    // a valid ad is available
+    _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        log('  event show:onAdShowedFullScreenContent');
+        _showing = true;
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        log('  event show:onAdFailedToShowFullScreenContent');
+        _showing = false;
+        ad.dispose();
+        _appOpenAd = null;
+      },
+      onAdDismissedFullScreenContent: (ad) {
+        log('  event show:onAdDismissedFullScreenContent');
+        _showing = false;
+        ad.dispose();
+        _appOpenAd = null;
+        loadAd();
+      },
+    );
+    log('ad available => show()');
+    _appOpenAd!.show();
+    return true;
+  }
+}
+
+Future<void> appOpenAds({
+  String appId = FatOpen.testAppId,
+  String iosUnitId = FatOpen.testIosUnitId,
+  String androidUnitId = FatOpen.testAndroidUnitId,
+  Duration loadingTimeout = const Duration(seconds: 3),
+}) async {
+  if (Platform.isAndroid || Platform.isIOS) {
+    var open = FatOpen(
+      appId: appId,
+      iosUnitId: iosUnitId,
+      androidUnitId: androidUnitId,
+      loadingTimeout: loadingTimeout,
+    );
+    open.initialize();
+    open.loadAd();
+    await open.loading;
+    if (open.showAdIfAvailable()) {
+      await Future.delayed(const Duration(seconds: 1));
+    }
   }
 }

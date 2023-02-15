@@ -1,21 +1,12 @@
 import 'package:fat_ads/fat_ads.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(
-    FatAds(
-      open: FatOpen(
-        loadingBuilder: (context, percent) {
-          return Scaffold(
-            body: Center(
-              child: Text("Loading $percent %!"),
-            ),
-          );
-        },
-      ),
-      child: const MyApp(),
-    ),
+void main() async {
+  appOpenAds(
+    loadingTimeout: Duration(seconds: 5),
   );
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Fat Ads'),

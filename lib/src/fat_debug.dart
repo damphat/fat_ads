@@ -23,7 +23,10 @@ class _FatDebugState extends State<FatDebug> {
     if (kReleaseMode) {
       return widget.child;
     }
-    final ad = context.watch<FatOpen>();
+    final ad = context.watch<FatOpen?>();
+    if (ad == null) {
+      return widget.child;
+    }
     final log = ad.logs.map(Text.new);
     final debug = !_showDebug
         ? InkWell(
@@ -43,7 +46,6 @@ class _FatDebugState extends State<FatDebug> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // titlebar = (title + close)
                 Container(
                   color: Colors.black.withAlpha(40),
                   child: Row(
@@ -73,16 +75,8 @@ class _FatDebugState extends State<FatDebug> {
                       child: const Text('load'),
                     ),
                     TextButton(
-                      onPressed: () => context.read<FatOpen>().showAd(),
-                      child: const Text('show'),
-                    ),
-                    TextButton(
                       onPressed: () => context.read<FatOpen>().clearLogs(),
                       child: const Text('clear'),
-                    ),
-                    TextButton(
-                      onPressed: () => context.read<FatOpen>().showMenu(),
-                      child: const Icon(Icons.menu),
                     ),
                   ],
                 ),

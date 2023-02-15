@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 import 'fat_open.dart';
@@ -8,66 +11,56 @@ class FatAds extends StatefulWidget {
     super.key,
     required this.child,
     FatOpen? open,
-  }) : open = open ?? FatOpen();
+  }) : open = Platform.isAndroid || Platform.isIOS ? open : null;
 
   final Widget child;
-  final FatOpen open;
+  final FatOpen? open;
 
   @override
   State<FatAds> createState() => _FatAdsState();
 }
 
 class _FatAdsState extends State<FatAds> {
-  late FatOpen openApp;
   var loading = true;
   @override
   void initState() {
     super.initState();
-    openApp = widget.open;
     init();
   }
 
   Future<void> init() async {
-    setState(() {
-      loading = true;
-    });
-    await openApp.initialize();
-    await openApp.loadAd();
-
-    await openApp.showAd();
-
-    setState(() {
-      loading = false;
-    });
+    if (widget.open != null) {
+      widget.open!.initialize();
+      widget.open!.loadAd();
+      await widget.open!.loading;
+      widget.open!.showAdIfAvailable();
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
+    AppStateEventNotifier.stopListening();
     super.dispose();
-  }
-
-  Widget buildLoading(BuildContext context, int percent) {
-    return MaterialApp(
-      home: openApp.loadingBuilder!(context, percent),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    var child = loading
+        ? const MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator.adaptive()),
+            ),
+          )
+        : widget.child;
+
     return ChangeNotifierProvider.value(
       value: widget.open,
-      child: Builder(
-        builder: (context) {
-          final percent =
-              context.select<FatOpen, int?>((value) => value.percent);
-          final ad = context.read<FatOpen>();
-          if (!loading || ad.loadingBuilder == null) {
-            return widget.child;
-          }
-
-          return buildLoading(context, percent ?? 0);
-        },
-      ),
+      child: child,
     );
   }
 }
