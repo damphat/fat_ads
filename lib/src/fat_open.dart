@@ -36,6 +36,30 @@ class FatOpen with ChangeNotifier {
   Timer? _timer;
   Future<void> get loading => _completer.future;
 
+  // begin time control
+
+  DateTime? _nextTime;
+  DateTime? get nextTime => _nextTime;
+
+  void disableFor(Duration duration) {
+    var next = DateTime.now().add(duration);
+    if (_nextTime == null) {
+      _nextTime = next;
+      notifyListeners();
+    } else if (next.isAfter(_nextTime!)) {
+      _nextTime = next;
+      notifyListeners();
+    }
+  }
+
+  void disable() => disableFor(const Duration(days: 365));
+  void enable() {
+    _nextTime = null;
+    notifyListeners();
+  }
+
+  // end
+
   void log(String msg) {
     var time = DateTime.now();
     msg = '${time.second}${time.millisecond.toString().padLeft(3, '-')} | $msg';
@@ -78,7 +102,11 @@ class FatOpen with ChangeNotifier {
     AppStateEventNotifier.appStateStream.forEach((state) {
       if (state == AppState.foreground) {
         log('foreground');
-        showAdIfAvailable();
+        if (_nextTime == null || _nextTime!.isBefore(DateTime.now())) {
+          showAdIfAvailable();
+        } else {
+          log('skip because nextTime: $_nextTime');
+        }
       }
     });
   }
@@ -160,12 +188,15 @@ class FatOpen with ChangeNotifier {
         _showing = false;
         ad.dispose();
         _appOpenAd = null;
+        disableFor(const Duration(seconds: 30));
+        _nextTime = DateTime.now();
       },
       onAdDismissedFullScreenContent: (ad) {
         log('  event show:onAdDismissedFullScreenContent');
         _showing = false;
         ad.dispose();
         _appOpenAd = null;
+        disableFor(const Duration(seconds: 30));
         loadAd();
       },
     );
@@ -175,11 +206,19 @@ class FatOpen with ChangeNotifier {
   }
 }
 
-// This is an async function that returns when an Ads either is loaded or is
-// unable to load within the specified timeout.
-// To prevent Ads from suddenly appearing on your UI, make sure to call this
-// function before `runApp()` and don't forget to use the `await` keyword.
+FatOpen? _open;
 
+/// Initialize and load ads at top of main()
+/// This is an async function that returns when an Ads either is loaded or is
+/// unable to load within the specified timeout.
+/// To prevent Ads from suddenly appearing on your UI, make sure to call this
+/// function before `runApp()` and don't forget to use the `await` keyword.
+/// <example>
+///   void main() async {
+///     await appOpenAds();
+///     runApp(MyApp());
+///   }
+/// </example>
 Future<void> appOpenAds({
   String appId = FatOpen.testAppId,
   String iosUnitId = FatOpen.testIosUnitId,
@@ -187,17 +226,31 @@ Future<void> appOpenAds({
   Duration loadingTimeout = const Duration(seconds: 3),
 }) async {
   if (Platform.isAndroid || Platform.isIOS) {
-    var open = FatOpen(
+    if (_open != null) return;
+    _open = FatOpen(
       appId: appId,
       iosUnitId: iosUnitId,
       androidUnitId: androidUnitId,
       loadingTimeout: loadingTimeout,
     );
-    open.initialize();
-    open.loadAd();
-    await open.loading;
-    if (open.showAdIfAvailable()) {
+    _open!.initialize();
+    _open!.loadAd();
+    await _open!.loading;
+    if (_open!.showAdIfAvailable()) {
       await Future.delayed(const Duration(seconds: 1));
     }
   }
 }
+
+/// Disable ads for a period of time
+void appOpenAdsDisableFor(Duration timeout) {
+  if (Platform.isAndroid || Platform.isIOS) {
+    _open?.disableFor(timeout);
+  }
+}
+
+/// Disable ads forever
+void appOpenAdsDisable() => _open?.disable();
+
+/// Enable ads
+void appOpenAdsEnable() => _open?.enable();

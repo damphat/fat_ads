@@ -1,6 +1,6 @@
 name: fat_ads
 description: A simple and easy-to-use Flutter package to integrate Ads into your app.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/damphat/fat_ads.git
 
 environment:
